@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Stock Market Prediction{% endblock %}</title>
+    <title>{% block title %}StockSage - Stock Market Prediction{% endblock %}</title>
     
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
@@ -12,7 +12,75 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body {
+            padding-top: 70px;
+            background-color: #121212;
+            color: #f8f9fa;
+        }
+        .navbar {
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            background-color: #1a1a1a !important;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #00bcd4 !important;
+        }
+        .navbar-dark .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .navbar-dark .navbar-nav .nav-link:hover,
+        .navbar-dark .navbar-nav .nav-link.active {
+            color: #00bcd4;
+        }
+        .card {
+            background-color: #1e1e1e;
+            border-color: #333;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-bottom: 24px;
+        }
+        .card-header {
+            border-bottom-color: #333;
+            background-color: #252525;
+            font-weight: bold;
+        }
+        .btn-primary, .btn-info {
+            background-color: #00bcd4;
+            border-color: #00bcd4;
+        }
+        .btn-primary:hover, .btn-info:hover {
+            background-color: #008ba3;
+            border-color: #008ba3;
+        }
+        footer {
+            background-color: #1a1a1a !important;
+            border-top: 1px solid #333;
+            color: #aaa;
+            margin-top: 100px;
+        }
+        .text-info {
+            color: #00bcd4 !important;
+        }
+        .bg-info {
+            background-color: #00bcd4 !important;
+        }
+        .border-info {
+            border-color: #00bcd4 !important;
+        }
+        .model-card {
+            transition: all 0.3s ease;
+        }
+        .model-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+        }
+        .positive-change {
+            color: #4caf50;
+        }
+        .negative-change {
+            color: #f44336;
+        }
+    </style>
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -21,10 +89,10 @@
 </head>
 <body>
     <!-- Navigation Bar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="fas fa-chart-line me-2"></i>Stock Market Predictor
+                <i class="fas fa-chart-line me-2"></i>StockSage
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -32,10 +100,19 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i> Home</a>
+                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('index') }}">
+                            <i class="fas fa-home me-1"></i> Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#about"><i class="fas fa-info-circle me-1"></i> About</a>
+                        <a class="nav-link {% if request.path == '/portfolio' %}active{% endif %}" href="{{ url_for('portfolio') }}">
+                            <i class="fas fa-briefcase me-1"></i> Portfolio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/about' %}active{% endif %}" href="{{ url_for('about') }}">
+                            <i class="fas fa-info-circle me-1"></i> About
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -43,7 +120,7 @@
     </nav>
 
     <!-- Main Content -->
-    <div class="container mt-4">
+    <div class="container py-4">
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -61,19 +138,19 @@
     </div>
 
     <!-- Footer -->
-    <footer class="bg-dark text-center text-lg-start mt-5">
+    <footer class="text-center text-lg-start mt-5">
         <div class="container p-4">
             <div class="row">
                 <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
-                    <h5 class="text-uppercase">About This Project</h5>
+                    <h5 class="text-uppercase text-info">About StockSage</h5>
                     <p>
-                        This stock market prediction application uses multiple machine learning algorithms
-                        including ARIMA, LSTM, and Linear Regression along with Twitter sentiment analysis
-                        to forecast stock prices.
+                        StockSage is an advanced stock market prediction platform that combines multiple 
+                        algorithms (ARIMA, LSTM, and Linear Regression) with market sentiment analysis
+                        to provide accurate stock price forecasts and trading insights.
                     </p>
                 </div>
                 <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
-                    <h5 class="text-uppercase">Disclaimer</h5>
+                    <h5 class="text-uppercase text-info">Disclaimer</h5>
                     <p>
                         This application is for educational purposes only. Stock market investments involve risk,
                         and past performance is not indicative of future results. Always do your own research before
@@ -83,7 +160,7 @@
             </div>
         </div>
         <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
-            © 2025 Stock Market Predictor
+            © 2025 StockSage | Advanced Stock Market Prediction
         </div>
     </footer>
 
