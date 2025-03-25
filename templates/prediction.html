@@ -1,165 +1,241 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
+{% block title %}{{ stock_symbol }} Prediction Results{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-10">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
-                <li class="breadcrumb-item active" aria-current="page">Prediction for {{ symbol }}</li>
-            </ol>
-        </nav>
-        
-        <div class="row mb-4">
-            <div class="col-lg-4">
-                <div class="card shadow-sm border-0 h-100">
-                    <div class="card-body text-center">
-                        <h4 class="card-title mb-3">
-                            <strong>{{ symbol }}</strong> Prediction
-                        </h4>
-                        <div class="prediction-number mb-2">
-                            ${{ prediction }}
-                        </div>
-                        <p class="text-muted">(Next day's predicted closing price)</p>
-                        
-                        <div class="mt-3">
-                            <h5>Market Sentiment:</h5>
-                            {% if sentiment == "Positive" %}
-                                <span class="badge bg-success p-2">
-                                    <i class="fas fa-arrow-up me-1"></i> Positive
-                                </span>
-                            {% elif sentiment == "Negative" %}
-                                <span class="badge bg-danger p-2">
-                                    <i class="fas fa-arrow-down me-1"></i> Negative
-                                </span>
-                            {% else %}
-                                <span class="badge bg-secondary p-2">
-                                    <i class="fas fa-minus me-1"></i> Neutral
-                                </span>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="mt-4">
-                            <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
-                                <i class="fas fa-search me-1"></i> Analyze Another Stock
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-8">
-                <div class="card shadow-sm border-0">
-                    <div class="card-body">
-                        <h4 class="card-title mb-3">Stock Price Trend</h4>
-                        <div class="chart-container">
-                            <canvas id="stockChart"></canvas>
-                        </div>
-                        <div class="text-center mt-3">
-                            <small class="text-muted">Historical price data for the last 2 years</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-light">
-                <h4 class="mb-0">Prediction Models</h4>
+        <div class="card bg-dark text-light">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">
+                    <i class="fas fa-chart-line me-2"></i>Prediction Results for {{ stock_symbol }}
+                </h3>
             </div>
             <div class="card-body">
-                <div class="row">
-                    {% for model in ['ARIMA', 'LSTM', 'Linear Regression'] %}
-                    <div class="col-md-4">
-                        <div class="card model-card {% if model == best_model %}highlight-best{% endif %}">
-                            <div class="model-header d-flex justify-content-between">
-                                {{ model }}
-                                {% if model == best_model %}
-                                <span class="badge bg-info">Best Model</span>
-                                {% endif %}
+                <!-- Latest Price and Overall Prediction -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-dark">
+                            <div class="card-header bg-info text-dark">
+                                <h5 class="mb-0">Latest Price</h5>
                             </div>
-                            
-                            {% for row in df_pred.itertuples() %}
-                                {% if row.Model == model %}
-                                <div>
-                                    <strong>Prediction:</strong> ${{ "%.2f"|format(row.Prediction) }}
-                                </div>
-                                <div>
-                                    <small>RMSE: {{ "%.4f"|format(row.RMSE) }}</small>
-                                </div>
-                                {% endif %}
-                            {% endfor %}
-                            
-                            <div class="mt-2">
-                                <button class="btn btn-sm btn-outline-secondary" 
-                                        onclick="toggleModelDetails('{{ model|lower|replace(' ', '_') }}')">
-                                    <i class="fas fa-info-circle me-1"></i> Details
-                                </button>
+                            <div class="card-body text-center">
+                                <h3 id="last-price">${{ last_price }}</h3>
+                                <p class="text-muted">Last Closing Price</p>
                             </div>
-                            
-                            <div id="{{ model|lower|replace(' ', '_') }}-details" class="mt-2 d-none">
-                                <small>
-                                    {% if model == 'ARIMA' %}
-                                    ARIMA (AutoRegressive Integrated Moving Average) is a statistical method for time series forecasting.
-                                    <img src="{{ url_for('static', filename='ARIMA.png') }}" 
-                                         class="img-fluid mt-2" alt="ARIMA Prediction Graph">
-                                    {% elif model == 'LSTM' %}
-                                    LSTM (Long Short-Term Memory) is a deep learning method that excels at learning long-term dependencies.
-                                    <img src="{{ url_for('static', filename='LSTM.png') }}" 
-                                         class="img-fluid mt-2" alt="LSTM Prediction Graph">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card bg-dark">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">Weighted Prediction</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <h3 id="weighted-pred">${{ weighted_pred }}</h3>
+                                <p class="
+                                    {% if change_weighted > 0 %}positive-change{% elif change_weighted < 0 %}negative-change{% else %}neutral-change{% endif %}
+                                ">
+                                    {% if change_weighted > 0 %}
+                                        <i class="fas fa-arrow-up"></i>
+                                    {% elif change_weighted < 0 %}
+                                        <i class="fas fa-arrow-down"></i>
                                     {% else %}
-                                    Linear Regression finds the linear relationship between the target and predictors.
-                                    <img src="{{ url_for('static', filename='LINEAR_REG.png') }}" 
-                                         class="img-fluid mt-2" alt="Linear Regression Prediction Graph">
+                                        <i class="fas fa-equals"></i>
                                     {% endif %}
-                                </small>
+                                    {{ change_weighted }}%
+                                </p>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-        
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-light">
-                <h4 class="mb-0">What to Know About These Predictions</h4>
-            </div>
-            <div class="card-body">
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Disclaimer:</strong> Stock market predictions involve risk. This tool provides estimates based on historical data and algorithms, but cannot guarantee future performance.
                 </div>
                 
-                <div class="row mt-3">
+                <!-- Model Predictions -->
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        <div class="card bg-dark h-100">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0">ARIMA Prediction</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <h4 id="arima-pred">${{ arima_pred }}</h4>
+                                <p class="
+                                    {% if change_arima > 0 %}positive-change{% elif change_arima < 0 %}negative-change{% else %}neutral-change{% endif %}
+                                ">
+                                    {% if change_arima > 0 %}
+                                        <i class="fas fa-arrow-up"></i>
+                                    {% elif change_arima < 0 %}
+                                        <i class="fas fa-arrow-down"></i>
+                                    {% else %}
+                                        <i class="fas fa-equals"></i>
+                                    {% endif %}
+                                    {{ change_arima }}%
+                                </p>
+                                <div class="text-muted">RMSE: {{ arima_rmse }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark h-100">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">LSTM Prediction</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <h4 id="lstm-pred">${{ lstm_pred }}</h4>
+                                <p class="
+                                    {% if change_lstm > 0 %}positive-change{% elif change_lstm < 0 %}negative-change{% else %}neutral-change{% endif %}
+                                ">
+                                    {% if change_lstm > 0 %}
+                                        <i class="fas fa-arrow-up"></i>
+                                    {% elif change_lstm < 0 %}
+                                        <i class="fas fa-arrow-down"></i>
+                                    {% else %}
+                                        <i class="fas fa-equals"></i>
+                                    {% endif %}
+                                    {{ change_lstm }}%
+                                </p>
+                                <div class="text-muted">RMSE: {{ lstm_rmse }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark h-100">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0">Linear Regression</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <h4 id="lin-reg-pred">${{ lin_reg_pred }}</h4>
+                                <p class="
+                                    {% if change_lin_reg > 0 %}positive-change{% elif change_lin_reg < 0 %}negative-change{% else %}neutral-change{% endif %}
+                                ">
+                                    {% if change_lin_reg > 0 %}
+                                        <i class="fas fa-arrow-up"></i>
+                                    {% elif change_lin_reg < 0 %}
+                                        <i class="fas fa-arrow-down"></i>
+                                    {% else %}
+                                        <i class="fas fa-equals"></i>
+                                    {% endif %}
+                                    {{ change_lin_reg }}%
+                                </p>
+                                <div class="text-muted">RMSE: {{ lin_reg_rmse }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Twitter Sentiment Analysis -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card bg-dark">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0"><i class="fab fa-twitter me-2"></i>Twitter Sentiment Analysis</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 text-center">
+                                        <h4 class="
+                                            {% if tweet_sentiment == 'Positive' %}sentiment-positive
+                                            {% elif tweet_sentiment == 'Negative' %}sentiment-negative
+                                            {% else %}sentiment-neutral{% endif %}
+                                        ">
+                                            {{ tweet_sentiment }}
+                                            {% if tweet_sentiment == 'Positive' %}
+                                                <i class="fas fa-smile"></i>
+                                            {% elif tweet_sentiment == 'Negative' %}
+                                                <i class="fas fa-frown"></i>
+                                            {% else %}
+                                                <i class="fas fa-meh"></i>
+                                            {% endif %}
+                                        </h4>
+                                        <p>Overall Sentiment</p>
+                                    </div>
+                                    <div class="col-md-6 text-center">
+                                        <h4>{{ tweet_polarity }}</h4>
+                                        <p>Polarity Score (-1 to 1)</p>
+                                        <div class="progress">
+                                            <div class="progress-bar 
+                                                {% if tweet_polarity > 0 %}bg-success
+                                                {% elif tweet_polarity < 0 %}bg-danger
+                                                {% else %}bg-warning{% endif %}" 
+                                                role="progressbar" 
+                                                style="width: {{ (tweet_polarity + 1) * 50 }}%">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Visualizations -->
+                <div class="row">
                     <div class="col-md-6">
-                        <h5><i class="fas fa-check-circle text-success me-2"></i>Considerations:</h5>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item bg-transparent">
-                                We used the best performing algorithm based on RMSE (Root Mean Square Error)
-                            </li>
-                            <li class="list-group-item bg-transparent">
-                                Twitter sentiment is analyzed from recent tweets about this stock
-                            </li>
-                            <li class="list-group-item bg-transparent">
-                                Historical data from the past 2 years was used for training models
-                            </li>
-                        </ul>
+                        <div class="card bg-dark">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">Models Comparison</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="comparison-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-6">
-                        <h5><i class="fas fa-info-circle text-info me-2"></i>Algorithm Details:</h5>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item bg-transparent">
-                                <strong>ARIMA:</strong> Statistical time series forecasting
-                            </li>
-                            <li class="list-group-item bg-transparent">
-                                <strong>LSTM:</strong> Deep learning neural network for sequence prediction
-                            </li>
-                            <li class="list-group-item bg-transparent">
-                                <strong>Linear Regression:</strong> Simple but effective trend prediction
-                            </li>
-                        </ul>
+                        <div class="card bg-dark">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">7-Day Forecast</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="forecast-chart"></canvas>
+                                </div>
+                                <!-- Hidden element to store forecast data -->
+                                <div id="forecast-data" data-forecast="{{ forecast_set }}" style="display: none;"></div>
+                            </div>
+                        </div>
                     </div>
+                </div>
+                
+                <!-- Algorithm Visualizations -->
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card bg-dark">
+                            <div class="card-header bg-danger text-white">
+                                <h5 class="mb-0">ARIMA Model</h5>
+                            </div>
+                            <div class="card-body">
+                                <img src="{{ url_for('static', filename='ARIMA.png') }}" class="img-fluid rounded" alt="ARIMA Prediction">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">LSTM Model</h5>
+                            </div>
+                            <div class="card-body">
+                                <img src="{{ url_for('static', filename='LSTM.png') }}" class="img-fluid rounded" alt="LSTM Prediction">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-dark">
+                            <div class="card-header bg-warning text-dark">
+                                <h5 class="mb-0">Linear Regression</h5>
+                            </div>
+                            <div class="card-body">
+                                <img src="{{ url_for('static', filename='Linear_Regression.png') }}" class="img-fluid rounded" alt="Linear Regression Prediction">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Back button -->
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Search
+                    </a>
                 </div>
             </div>
         </div>

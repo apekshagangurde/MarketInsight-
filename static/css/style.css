@@ -1,65 +1,106 @@
-/* Custom styles for the stock prediction app */
+/* Custom Styles for Stock Prediction App */
 
-.stock-card {
-    transition: transform 0.3s ease;
+/* Body */
+body {
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+    padding-top: 70px;
+    padding-bottom: 30px;
+}
+
+/* Card customization */
+.card {
+    border: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s;
     margin-bottom: 20px;
 }
 
-.stock-card:hover {
+.card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
 }
 
-.prediction-number {
-    font-size: 2.5rem;
+.card-header {
     font-weight: bold;
 }
 
+/* Price changes */
+.positive-change {
+    color: var(--bs-success);
+}
+
+.negative-change {
+    color: var(--bs-danger);
+}
+
+.neutral-change {
+    color: var(--bs-warning);
+}
+
+/* Model accuracy indicators */
+.model-accuracy {
+    height: 10px;
+    border-radius: 5px;
+}
+
+/* Sentiment indicators */
 .sentiment-positive {
-    color: #28a745;
+    color: var(--bs-success);
 }
 
 .sentiment-negative {
-    color: #dc3545;
+    color: var(--bs-danger);
 }
 
 .sentiment-neutral {
-    color: #6c757d;
+    color: var(--bs-warning);
 }
 
+/* Chart containers */
 .chart-container {
     position: relative;
     height: 300px;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+/* Loading spinner */
+.spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 9999;
+}
+
+/* Form styling */
+.search-form {
     margin-bottom: 30px;
 }
 
-.model-card {
-    padding: 15px;
-    border-radius: 5px;
-    margin-bottom: 15px;
+/* Stock suggestions */
+.stock-suggestion {
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 3px;
+    margin: 5px;
+    display: inline-block;
+    background-color: var(--bs-dark);
+    border: 1px solid var(--bs-secondary);
 }
 
-.model-header {
-    font-weight: bold;
-    margin-bottom: 10px;
+.stock-suggestion:hover {
+    background-color: var(--bs-secondary);
 }
 
-.loading-spinner {
-    display: none;
-    margin: 0 auto;
-}
-
-.highlight-best {
-    border: 2px solid var(--bs-info);
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .prediction-number {
-        font-size: 2rem;
-    }
-    
-    .chart-container {
-        height: 250px;
-    }
+/* Footer */
+footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--bs-secondary);
 }

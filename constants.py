@@ -1,6 +1,28 @@
-# Twitter API credentials
-consumer_key = '7x7w8Ti8GmMtuhvj7IXBuvZmP'
-consumer_secret = 'kpFGcKiGxP9dJtlQzZ99p2OK9HM0IjA1I8n23N40VJyctOzvkG'
-access_token = '1365544389498474497-97lzyZE9lroLNDzLhvW1dLS3MDKfV5'
-access_token_secret = '8mF9CrBt4SvmewPZaapgL7kkh2iJus824SvhBJOvDpXlw'
-num_of_tweets = 300
+# Twitter API Credentials
+consumer_key = "YOUR_CONSUMER_KEY"
+consumer_secret = "YOUR_CONSUMER_SECRET"
+access_token = "YOUR_ACCESS_TOKEN"
+access_token_secret = "YOUR_ACCESS_TOKEN_SECRET"
+
+# Other constants
+stock_indices = {
+    "^GSPC": "S&P 500",
+    "^DJI": "Dow Jones",
+    "^IXIC": "NASDAQ",
+    "^FTSE": "FTSE 100",
+    "^N225": "Nikkei 225",
+    "^HSI": "Hang Seng"
+}
+
+popular_stocks = [
+    "AAPL",  # Apple
+    "MSFT",  # Microsoft
+    "AMZN",  # Amazon
+    "GOOGL", # Google
+    "META",  # Meta (Facebook)
+    "TSLA",  # Tesla
+    "NVDA",  # NVIDIA
+    "JPM",   # JPMorgan Chase
+    "V",     # Visa
+    "WMT"    # Walmart
+]

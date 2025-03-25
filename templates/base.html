@@ -3,22 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Market Prediction with ML</title>
+    <title>{% block title %}Stock Market Prediction{% endblock %}</title>
+    
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.replit.com/agent/bootstrap-agent-dark-theme.min.css">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    {% block head %}{% endblock %}
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-chart-line me-2"></i>StockPredict
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-chart-line me-2"></i>Stock Market Predictor
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -26,20 +32,19 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
+                        <a class="nav-link" href="/"><i class="fas fa-home me-1"></i> Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="https://github.com/yourusername/stock-prediction" target="_blank">
-                            <i class="fab fa-github"></i> GitHub
-                        </a>
+                        <a class="nav-link" href="#about"><i class="fas fa-info-circle me-1"></i> About</a>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
-    <!-- Flash Messages -->
-    <div class="container">
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -50,26 +55,44 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
+        
+        <!-- Page Content -->
+        {% block content %}{% endblock %}
     </div>
 
-    <!-- Main Content -->
-    <main class="container py-4">
-        {% block content %}{% endblock %}
-    </main>
-
     <!-- Footer -->
-    <footer class="footer mt-5 py-3 bg-dark">
-        <div class="container text-center">
-            <span class="text-muted">
-                &copy; 2025 StockPredict. Built with 
-                <i class="fas fa-heart text-danger"></i> using Flask & Machine Learning.
-            </span>
+    <footer class="bg-dark text-center text-lg-start mt-5">
+        <div class="container p-4">
+            <div class="row">
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">About This Project</h5>
+                    <p>
+                        This stock market prediction application uses multiple machine learning algorithms
+                        including ARIMA, LSTM, and Linear Regression along with Twitter sentiment analysis
+                        to forecast stock prices.
+                    </p>
+                </div>
+                <div class="col-lg-6 col-md-12 mb-4 mb-md-0">
+                    <h5 class="text-uppercase">Disclaimer</h5>
+                    <p>
+                        This application is for educational purposes only. Stock market investments involve risk,
+                        and past performance is not indicative of future results. Always do your own research before
+                        making investment decisions.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+            © 2023 Stock Market Predictor
         </div>
     </footer>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+    
+    {% block scripts %}{% endblock %}
 </body>
 </html>
