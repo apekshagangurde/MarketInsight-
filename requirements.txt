@@ -155,7 +155,7 @@ patsy==0.5.6
 pdfminer.six==20221105
 pdfplumber==0.10.4
 peewee==3.17.6
-peppercorn==0.6
+
 pillow==10.2.0
 pipenv==2023.11.15
 platformdirs==4.1.0
