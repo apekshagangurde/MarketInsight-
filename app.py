@@ -2,7 +2,7 @@
 
 #**************** IMPORT PACKAGES ********************
 import os
-from flask import Flask, render_template, request, flash, redirect, url_for, jsonify
+from flask import Flask, render_template, request, flash, redirect, url_for, jsonify, session
 from alpha_vantage.timeseries import TimeSeries
 import pandas as pd
 import numpy as np
