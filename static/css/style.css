@@ -1,0 +1,65 @@
+/* Custom styles for the stock prediction app */
+
+.stock-card {
+    transition: transform 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.stock-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.prediction-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+}
+
+.sentiment-positive {
+    color: #28a745;
+}
+
+.sentiment-negative {
+    color: #dc3545;
+}
+
+.sentiment-neutral {
+    color: #6c757d;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-bottom: 30px;
+}
+
+.model-card {
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+.model-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.loading-spinner {
+    display: none;
+    margin: 0 auto;
+}
+
+.highlight-best {
+    border: 2px solid var(--bs-info);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .prediction-number {
+        font-size: 2rem;
+    }
+    
+    .chart-container {
+        height: 250px;
+    }
+}
