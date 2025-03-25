@@ -474,22 +474,30 @@ def LIN_REG_ALGO(df):
         forecast_out = 7  # 7 days
         df['label'] = df['Close'].shift(-forecast_out)
         
-        # Handle NaN values in label
+        # Handle NaN values in label (this removes the last 'forecast_out' rows)
         df.dropna(inplace=True)
         
         if len(df) < 20:  # Not enough data to create a meaningful model
             raise ValueError("Not enough data points for reliable prediction")
             
-        # Split data
+        # Get data for prediction (save a copy of full data for prediction)
+        # This ensures we're using the complete dataset for forecasting
+        df_predict = df.copy()
+        
+        # Split data - making sure X and y have the same number of samples
         X = np.array(df.drop(['label'], axis=1))
         y = np.array(df['label'])
         
-        # Ensure sufficient data for training
-        if len(X) <= forecast_out:
-            raise ValueError("Not enough data points after preprocessing")
-            
-        X_forecast = X[-forecast_out:].copy() if len(X) > forecast_out else X[-1:].copy()
-        X = X[:-forecast_out] if len(X) > forecast_out else X[:-1]
+        logger.info(f"Linear Regression data shapes - X: {X.shape}, y: {y.shape}")
+        
+        # Ensure X and y have the same length
+        min_len = min(len(X), len(y))
+        X = X[:min_len]
+        y = y[:min_len]
+        
+        # Generate forecast data - we'll use the most recent data points
+        # We don't shift these as we want to predict future values
+        forecast_data = np.array(df_predict[['Close', 'HL_PCT', 'PCT_change', 'Volume']].tail(forecast_out))
         
         # Train/test split with error handling
         if len(X) > 10:  # Need at least some data for meaningful split
@@ -507,7 +515,7 @@ def LIN_REG_ALGO(df):
         # Predictions and metrics
         y_pred = clf.predict(X_test)
         rmse = math.sqrt(mean_squared_error(y_test, y_pred))
-        forecast_set = clf.predict(X_forecast)
+        forecast_set = clf.predict(forecast_data)
         
         # Ensure forecast_set is numpy array
         if not isinstance(forecast_set, np.ndarray):
