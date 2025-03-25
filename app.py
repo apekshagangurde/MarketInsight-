@@ -49,7 +49,112 @@ def add_header(response):
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    # Get sample stocks for demonstration
+    sample_stocks = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA']
+    return render_template('index.html', sample_stocks=sample_stocks)
+
+@app.route('/about')
+def about():
+    # Information about the application
+    app_info = {
+        'name': 'StockSage',
+        'version': '1.0',
+        'description': 'Advanced stock market prediction using multiple algorithms and sentiment analysis.',
+        'algorithms': [
+            {
+                'name': 'ARIMA',
+                'description': 'Autoregressive Integrated Moving Average - excellent for time series with seasonal patterns.',
+                'strengths': 'Captures seasonal trends and cyclical patterns in stock data.'
+            },
+            {
+                'name': 'LSTM',
+                'description': 'Long Short-Term Memory - specialized neural network for sequence prediction.',
+                'strengths': 'Can identify complex patterns and long-term dependencies in price movements.'
+            },
+            {
+                'name': 'Linear Regression',
+                'description': 'Statistical approach that models relationship between variables.',
+                'strengths': 'Simple, interpretable model that works well for stocks with clear trends.'
+            }
+        ],
+        'features': [
+            'Multi-algorithm prediction',
+            'Market sentiment analysis',
+            'Ensemble prediction combining multiple models',
+            '7-day price forecasting',
+            'Interactive data visualization',
+            'Portfolio tracking (NEW)'
+        ]
+    }
+    return render_template('about.html', app_info=app_info)
+
+@app.route('/portfolio', methods=['GET', 'POST'])
+def portfolio():
+    """Handle user portfolio of saved stocks"""
+    if request.method == 'POST':
+        # Handle adding a stock to portfolio
+        stock_symbol = request.form.get('stock_symbol', '').strip().upper()
+        if stock_symbol:
+            # In a real app, we'd save this to a database
+            # For now, we'll use session to store portfolio
+            portfolio = session.get('portfolio', [])
+            if stock_symbol not in portfolio:
+                # Try to validate the stock by getting its data
+                try:
+                    df = get_historical(stock_symbol)
+                    if not df.empty:
+                        portfolio.append(stock_symbol)
+                        session['portfolio'] = portfolio
+                        flash(f'{stock_symbol} added to your portfolio!', 'success')
+                    else:
+                        flash(f'Could not find stock data for {stock_symbol}', 'danger')
+                except:
+                    flash(f'Could not validate stock symbol {stock_symbol}', 'danger')
+            else:
+                flash(f'{stock_symbol} is already in your portfolio', 'info')
+                
+        # Handle removing a stock
+        stock_to_remove = request.form.get('remove_stock')
+        if stock_to_remove:
+            portfolio = session.get('portfolio', [])
+            if stock_to_remove in portfolio:
+                portfolio.remove(stock_to_remove)
+                session['portfolio'] = portfolio
+                flash(f'{stock_to_remove} removed from your portfolio', 'success')
+    
+    # Get portfolio for display
+    portfolio = session.get('portfolio', [])
+    
+    # Get basic data for each stock in portfolio
+    portfolio_data = []
+    for symbol in portfolio:
+        try:
+            df = pd.read_csv(f'{symbol}.csv')
+            df['Close'] = pd.to_numeric(df['Close'], errors='coerce')
+            last_price = float(df['Close'].iloc[-1])
+            prev_price = float(df['Close'].iloc[-2]) if len(df) > 1 else last_price
+            pct_change = ((last_price - prev_price) / prev_price) * 100
+            
+            # Get sentiment
+            sentiment, _ = get_tweet_sentiment(symbol)
+            
+            portfolio_data.append({
+                'symbol': symbol,
+                'last_price': round(last_price, 2),
+                'pct_change': round(pct_change, 2),
+                'sentiment': sentiment
+            })
+        except Exception as e:
+            logger.error(f"Error getting data for {symbol}: {str(e)}")
+            # Still include the stock but with error message
+            portfolio_data.append({
+                'symbol': symbol,
+                'last_price': 'Error',
+                'pct_change': 0,
+                'sentiment': 'Unknown'
+            })
+    
+    return render_template('portfolio.html', portfolio=portfolio_data)
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -412,21 +517,43 @@ def LIN_REG_ALGO(df):
         fig = plt.figure(figsize=(7.2, 4.8), dpi=65)
         plt.style.use('dark_background')
         
-        # Past & current data
-        plt.plot(range(len(df['Close'])), df['Close'], color='#00FFFF', linewidth=2, label='Historical Data')
+        try:
+            # Create a safer plot with error handling
+            # Past & current data
+            x_historical = np.arange(len(df['Close']))
+            plt.plot(x_historical, df['Close'], color='#00FFFF', linewidth=2, label='Historical Data')
+            
+            # Forecast data - ensure length matches
+            if len(forecast_set) > 0:
+                # Create proper indices for forecast
+                x_forecast = np.arange(len(df['Close']) - min(len(forecast_set), forecast_out), len(df['Close']))
+                # Ensure forecast data and indices match in length
+                forecast_to_plot = forecast_set[:len(x_forecast)] if len(forecast_set) > len(x_forecast) else forecast_set
+                x_forecast = x_forecast[:len(forecast_to_plot)]
+                
+                # Plot forecast line
+                plt.plot(x_forecast, forecast_to_plot, color='#FF00FF', linewidth=2, linestyle='--', label='7-Day Forecast')
+                
+                # Add confidence interval for visual appeal if we have a valid RMSE
+                if rmse > 0 and not np.isinf(rmse) and not np.isnan(rmse):
+                    confidence = min(rmse * 1.5, np.mean(forecast_to_plot) * 0.2)  # Limit confidence band to 20% of mean price
+                    plt.fill_between(x_forecast, 
+                                     forecast_to_plot - confidence, 
+                                     forecast_to_plot + confidence, 
+                                     color='#FF00FF', alpha=0.2)
+        except Exception as plot_err:
+            # Fallback to simpler plot if the complex one fails
+            logger.error(f"Error in plotting: {str(plot_err)}. Using simpler plot...")
+            plt.clf()  # Clear the figure
+            plt.style.use('dark_background')
+            plt.plot(df['Close'].values, color='#00FFFF', linewidth=2, label='Historical Price')
+            if len(forecast_set) > 0:
+                # Just plot the forecast as a separate line after the historical data
+                plt.plot(range(len(df['Close'])-1, len(df['Close'])-1+len(forecast_set)), 
+                        np.append(df['Close'].iloc[-1], forecast_set), 
+                        color='#FF00FF', linewidth=2, linestyle='--', label='Forecast')
         
-        # Forecast data
-        forecast_indices = np.arange(len(df['Close'])-forecast_out, len(df['Close']))
-        plt.plot(forecast_indices, forecast_set, color='#FF00FF', linewidth=2, linestyle='--', label='7-Day Forecast')
-        
-        # Add confidence interval for visual appeal
-        confidence = rmse * 1.5  # Use RMSE to create a visual confidence interval
-        plt.fill_between(forecast_indices, 
-                         forecast_set - confidence, 
-                         forecast_set + confidence, 
-                         color='#FF00FF', alpha=0.2)
-        
-        # Add more visual elements
+        # Add more visual elements - these should work even if the main plot fails
         plt.grid(True, alpha=0.3)
         plt.title('Linear Regression 7-Day Forecast', fontsize=14, fontweight='bold')
         plt.xlabel('Time', fontsize=12)

@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}About - StockSage{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card bg-dark text-white border-info mb-4">
+                <div class="card-header bg-info text-dark">
+                    <h2 class="mb-0">{{ app_info.name }} <small class="text-white">v{{ app_info.version }}</small></h2>
+                </div>
+                <div class="card-body">
+                    <p class="lead">{{ app_info.description }}</p>
+                    
+                    <div class="mt-4">
+                        <h3 class="border-bottom border-info pb-2 text-info">Key Features</h3>
+                        <ul class="list-group list-group-flush bg-dark mt-3">
+                            {% for feature in app_info.features %}
+                            <li class="list-group-item bg-dark text-white">
+                                <i class="fas fa-check-circle text-info me-2"></i> {{ feature }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <h3 class="border-bottom border-info pb-2 text-info">Prediction Algorithms</h3>
+                        <div class="accordion mt-3" id="algorithmsAccordion">
+                            {% for algo in app_info.algorithms %}
+                            <div class="accordion-item bg-dark text-white border-info">
+                                <h2 class="accordion-header" id="heading{{ loop.index }}">
+                                    <button class="accordion-button collapsed bg-dark text-white border-0" 
+                                            type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#collapse{{ loop.index }}" 
+                                            aria-expanded="false" 
+                                            aria-controls="collapse{{ loop.index }}">
+                                        <span class="text-info">{{ algo.name }}</span>
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ loop.index }}" 
+                                     class="accordion-collapse collapse" 
+                                     aria-labelledby="heading{{ loop.index }}" 
+                                     data-bs-parent="#algorithmsAccordion">
+                                    <div class="accordion-body">
+                                        <p>{{ algo.description }}</p>
+                                        <p class="mb-0"><strong class="text-info">Strengths:</strong> {{ algo.strengths }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card bg-dark text-white border-info mb-4">
+                <div class="card-header bg-info text-dark">
+                    <h3 class="mb-0">How to Use StockSage</h3>
+                </div>
+                <div class="card-body">
+                    <div class="steps">
+                        <div class="step d-flex mb-4">
+                            <div class="step-number bg-info text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <strong>1</strong>
+                            </div>
+                            <div class="step-content">
+                                <h5 class="text-info">Enter a Stock Symbol</h5>
+                                <p>Start by entering a valid stock symbol (like AAPL, MSFT, GOOGL) in the search box on the homepage.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step d-flex mb-4">
+                            <div class="step-number bg-info text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <strong>2</strong>
+                            </div>
+                            <div class="step-content">
+                                <h5 class="text-info">Review Predictions</h5>
+                                <p>Once results are generated, you'll see predictions from three different algorithms, along with market sentiment analysis.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step d-flex mb-4">
+                            <div class="step-number bg-info text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <strong>3</strong>
+                            </div>
+                            <div class="step-content">
+                                <h5 class="text-info">Analyze Charts</h5>
+                                <p>Examine the visual charts for each prediction algorithm to understand how they arrived at their forecasts.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step d-flex mb-4">
+                            <div class="step-number bg-info text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <strong>4</strong>
+                            </div>
+                            <div class="step-content">
+                                <h5 class="text-info">View 7-Day Forecast</h5>
+                                <p>Check the 7-day price forecast table to see predicted values for the upcoming week.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="step d-flex">
+                            <div class="step-number bg-info text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                <strong>5</strong>
+                            </div>
+                            <div class="step-content">
+                                <h5 class="text-info">Save to Portfolio</h5>
+                                <p>Add stocks to your portfolio to track them over time and quickly access predictions.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card bg-dark text-white border-info">
+                <div class="card-header bg-info text-dark">
+                    <h3 class="mb-0">Technical Details</h3>
+                </div>
+                <div class="card-body">
+                    <p><strong class="text-info">Data Source:</strong> Historical stock data is fetched from Yahoo Finance API with Alpha Vantage as a backup source.</p>
+                    <p><strong class="text-info">Prediction Horizon:</strong> Next-day price predictions plus a 7-day forecast.</p>
+                    <p><strong class="text-info">Market Sentiment:</strong> Analysis based on stock performance patterns.</p>
+                    <p><strong class="text-info">Ensemble Method:</strong> Weighted average of multiple predictions, using inverse RMSE to give more weight to more accurate models.</p>
+                    <p class="mb-0"><strong class="text-info">Visualization:</strong> Dynamic charts generated using Matplotlib and styled for optimal readability.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
